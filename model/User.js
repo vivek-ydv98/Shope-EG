@@ -4,10 +4,10 @@ const { Schema } = mongoose;
 const UserSchema = new Schema({
   name: { type: String },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { type: String, default:'user' },
+  password: { type: Buffer, required: true },
+  role: { type: String, default: "user" },
   addresses: { type: [Schema.Types.Mixed] },
-  orders: { type: [Schema.Types.Mixed] },
+  salt: Buffer,
 });
 
 const virtual = UserSchema.virtual("id");

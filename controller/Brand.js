@@ -9,14 +9,13 @@ exports.fetchBrands = async (req, res) => {
   }
 };
 exports.createBrand = async (req, res) => {
-    // const productCreated = await Brand.insertMany(req.body)
-    const brand = new Brand(req.body);
-    brand.save()
-      .then((data) => {
-        res.status(201).json(data);
-      })
-      .catch((err) => {
-        res.status(400).json(err);
-      });
-  };
-  
+  // const productCreated = await Brand.insertMany(req.body)
+  const brand = new Brand(req.body);
+  brand.save()
+    .then((data) => {
+      res.status(201).json(data);
+    })
+    .catch((err) => {
+      res.status(400).json(err);
+    });
+};

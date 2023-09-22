@@ -21,22 +21,21 @@ exports.addToCart = async (req, res) => {
   }
 };
 exports.updateCart = async (req, res) => {
-    const { id } = req.params;
-    try {
-      let cart = await Cart.findByIdAndUpdate(id, req.body, { new: true });
-      let result = await cart.populate('product')
-      res.status(200).json(result);
-    } catch (error) {
-      res.status(400).json(error);
-    }
-  };
+  const { id } = req.params;
+  try {
+    let cart = await Cart.findByIdAndUpdate(id, req.body, { new: true });
+    let result = await cart.populate("product");
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json(error);
+  }
+};
 exports.deleteFromCart = async (req, res) => {
-    const { id } = req.params;
-    try {
-      let cart = await Cart.findByIdAndDelete(id);
-      res.status(200).json(cart);
-    } catch (error) {
-      res.status(400).json(error);
-    }
-  };
-  
+  const { id } = req.params;
+  try {
+    let cart = await Cart.findByIdAndDelete(id);
+    res.status(200).json(cart);
+  } catch (error) {
+    res.status(400).json(error);
+  }
+};

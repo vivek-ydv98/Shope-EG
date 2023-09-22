@@ -12,8 +12,7 @@ exports.fetchOrderByUser = async (req, res) => {
 
 exports.createOrder = async (req, res) => {
   const order = new Order(req.body);
-  order
-    .save()
+  order.save()
     .then((data) => {
       res.status(201).json(data);
     })
@@ -42,11 +41,10 @@ exports.deleteOrder = async (req, res) => {
   }
 };
 
-
 exports.fetchAllOrders = async (req, res) => {
-  let query = Order.find({deleted:{$ne:true}});
-  let totalOrdersQuery = Order.find({deleted:{$ne:true}});
- 
+  let query = Order.find({ deleted: { $ne: true } });
+  let totalOrdersQuery = Order.find({ deleted: { $ne: true } });
+
   if (req.query._sort && req.query._order) {
     query = query.sort({ [req.query._sort]: req.query._order });
   }

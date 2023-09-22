@@ -3,6 +3,15 @@ const server = express();
 const mongoose = require("mongoose");
 const cors = require("cors");
 
+const session = require("express-session");
+const passport = require("passport");
+const LocalStrategy = require("passport-local").Strategy;
+const crypto = require("crypto");
+
+const jwt = require("jsonwebtoken");
+const JwtStrategy = require("passport-jwt").Strategy;
+const ExtractJwt = require("passport-jwt").ExtractJwt;
+
 const productRouter = require("./routes/Products");
 const brandRouter = require("./routes/Brands");
 const categoriesRouter = require("./routes/Categories");
@@ -10,17 +19,87 @@ const usersRouter = require("./routes/User");
 const authRouter = require("./routes/Auth");
 const cartsRouter = require("./routes/Cart");
 const ordersRouter = require("./routes/Order");
+const { User } = require("./model/User");
+const { isAuth, sanitizeUser } = require("./services/common");
+
+const SECRET_KEY = "SECRET_KEY";
+//jwt options
+const opts = {};
+opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+opts.secretOrKey = SECRET_KEY;
 
 // middlewares
+server.use(
+  session({
+    secret: "keyboard cat",
+    resave: false, // don't save session if unmodified
+    saveUninitialized: false, // don't create session until something stored
+  })
+);
+server.use(passport.authenticate("session"));
+
 server.use(cors({ exposedHeaders: ["X-Total-Count"] }));
 server.use(express.json());
-server.use("/products", productRouter.router);
-server.use("/categories", categoriesRouter.router);
-server.use("/brands", brandRouter.router);
-server.use("/users", usersRouter.router);
+server.use("/products", isAuth(), productRouter.router); //we can also use jwt token for client only auth
+server.use("/categories", isAuth(), categoriesRouter.router);
+server.use("/brands", isAuth(), brandRouter.router);
+server.use("/users", isAuth(), usersRouter.router);
 server.use("/auth", authRouter.router);
-server.use("/carts", cartsRouter.router);
-server.use("/orders", ordersRouter.router);
+server.use("/carts", isAuth(), cartsRouter.router);
+server.use("/orders", isAuth(), ordersRouter.router);
+
+//Passport Strategies
+passport.use( "local", new LocalStrategy({ usernameField: "email" }, async function ( email, password, done ) {
+    // by default passpot uses username
+    try {
+      const user = await User.findOne({ email: email }).exec();
+      console.log(user, email, password);
+      if (!user) {
+        done(null, false, { message: "Invalid Credentials" });
+      }
+      crypto.pbkdf2( password, user.salt, 310000, 32, "sha256", async function (err, hashedPassword) {
+          if (!crypto.timingSafeEqual(user.password, hashedPassword)) {
+            return done(null, false, { message: "Invalid Credentials" });
+          }
+          const token = jwt.sign(sanitizeUser(user), SECRET_KEY);
+          return done(null, token); //this line send to serialize
+        }
+      );
+    } catch (error) {
+      done(error);
+    }
+  })
+);
+passport.use( "jwt", new JwtStrategy(opts, async function (jwt_payload, done) {
+    console.log({ jwt_payload });
+    try {
+      const user = await User.findOne({ id: jwt_payload.sub });
+      if (user) {
+        return done(null, sanitizeUser(user)); //this calls serializer
+      } else {
+        return done(null, false);
+      }
+    } catch (error) {
+      return done(err, false);
+    }
+  })
+);
+
+//this creates  session variable req.user on being called
+passport.serializeUser(function (user, cb) {
+  console.log("serialize", user);
+  process.nextTick(function () {
+    return cb(null, { id: user.id, role: user.role });
+  });
+});
+
+// this changes session variable req.user when called from authorized request
+passport.deserializeUser(function (user, cb) {
+  console.log("de-serialize", user);
+  process.nextTick(function () {
+    return cb(null, user);
+  });
+});
 
 main().catch((err) => console.log(err));
 async function main() {

@@ -13,10 +13,9 @@ exports.createProduct = async (req, res) => {
 };
 
 exports.fetchProducts = async (req, res) => {
-
-  let condition = {}
-  if(!req.query.admin){
-    condition.deleted={$ne:true} //not equal to
+  let condition = {};
+  if (!req.query.admin) {
+    condition.deleted = { $ne: true }; //not equal to
   }
 
   let query = Product.find(condition);

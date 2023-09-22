@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { fetchOrderByUser, createOrder, updateOrder, deleteOrder, fetchAllOrders } = require("../controller/Order");
+const { fetchOrderByUser, createOrder, updateOrder, deleteOrder, fetchAllOrders} = require("../controller/Order");
 
 router.get("/:id", fetchOrderByUser);
 router.get("/", fetchAllOrders);
