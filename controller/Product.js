@@ -2,9 +2,8 @@ const { Product } = require("../model/Product");
 
 exports.createProduct = async (req, res) => {
   // const productCreated = await Product.insertMany(req.body)
-    const product = new Product(req.body);
-    product
-      .save()
+  const product = new Product(req.body);
+  product.save()
     .then((data) => {
       res.status(201).json(data);
     })
@@ -14,8 +13,14 @@ exports.createProduct = async (req, res) => {
 };
 
 exports.fetchProducts = async (req, res) => {
-  let query = Product.find({});
-  let totalProductQuery = Product.find({});
+
+  let condition = {}
+  if(!req.query.admin){
+    condition.deleted={$ne:true} //not equal to
+  }
+
+  let query = Product.find(condition);
+  let totalProductQuery = Product.find(condition);
   if (req.query.category) {
     query = query.find({ category: req.query.category });
     totalProductQuery = totalProductQuery.find({
@@ -44,7 +49,6 @@ exports.fetchProducts = async (req, res) => {
   } catch (error) {
     res.status(400).json(error);
   }
-  
 };
 
 exports.fetchProductById = async (req, res) => {
