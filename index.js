@@ -11,6 +11,7 @@ const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const JwtStrategy = require("passport-jwt").Strategy;
 const ExtractJwt = require("passport-jwt").ExtractJwt;
+const cookieParser = require("cookie-parser");
 
 const productRouter = require("./routes/Products");
 const brandRouter = require("./routes/Brands");
@@ -20,15 +21,19 @@ const authRouter = require("./routes/Auth");
 const cartsRouter = require("./routes/Cart");
 const ordersRouter = require("./routes/Order");
 const { User } = require("./model/User");
-const { isAuth, sanitizeUser } = require("./services/common");
+const { isAuth, sanitizeUser, cookieExtractor } = require("./services/common");
 
 const SECRET_KEY = "SECRET_KEY";
+
 //jwt options
 const opts = {};
-opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+opts.jwtFromRequest = cookieExtractor;
 opts.secretOrKey = SECRET_KEY;
 
 // middlewares
+server.use(express.static("build"));
+server.use(cookieParser());
+
 server.use(
   session({
     secret: "keyboard cat",
@@ -49,11 +54,10 @@ server.use("/carts", isAuth(), cartsRouter.router);
 server.use("/orders", isAuth(), ordersRouter.router);
 
 //Passport Strategies
-passport.use( "local", new LocalStrategy({ usernameField: "email" }, async function ( email, password, done ) {
+passport.use("local", new LocalStrategy({ usernameField: "email" }, async function ( email, password, done ) {
     // by default passpot uses username
     try {
       const user = await User.findOne({ email: email }).exec();
-      console.log(user, email, password);
       if (!user) {
         done(null, false, { message: "Invalid Credentials" });
       }
@@ -62,7 +66,7 @@ passport.use( "local", new LocalStrategy({ usernameField: "email" }, async funct
             return done(null, false, { message: "Invalid Credentials" });
           }
           const token = jwt.sign(sanitizeUser(user), SECRET_KEY);
-          return done(null, token); //this line send to serialize
+          return done(null, { id: user.id, role: user.role }); //this line send to serialize
         }
       );
     } catch (error) {
@@ -70,10 +74,11 @@ passport.use( "local", new LocalStrategy({ usernameField: "email" }, async funct
     }
   })
 );
+
 passport.use( "jwt", new JwtStrategy(opts, async function (jwt_payload, done) {
     console.log({ jwt_payload });
     try {
-      const user = await User.findOne({ id: jwt_payload.sub });
+      const user = await User.findById(jwt_payload.id);
       if (user) {
         return done(null, sanitizeUser(user)); //this calls serializer
       } else {

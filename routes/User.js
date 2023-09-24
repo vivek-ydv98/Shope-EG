@@ -3,7 +3,7 @@ const { updateUser, fetchUserById } = require("../controller/User");
 
 const router = express.Router();
 
-router.get("/:id", fetchUserById);
-router.patch("/:id", updateUser);
+router.get("/own", fetchUserById);
+router.patch("/", updateUser);
 
 exports.router = router;
