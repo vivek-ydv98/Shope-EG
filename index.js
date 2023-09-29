@@ -82,7 +82,7 @@ server.use("/users", isAuth(), usersRouter.router);
 server.use("/auth", authRouter.router);
 server.use("/carts", isAuth(), cartsRouter.router);
 server.use("/orders", isAuth(), ordersRouter.router);
-server.use("*", (req, res) =>
+server.get("*", (req, res) =>
   res.sendFile(path.resolve("build", "index.html"))
 );
 
@@ -176,7 +176,6 @@ server.post("/create-payment-intent", async (req, res) => {
        orderId,
     },
   });
-
   res.send({
     clientSecret: paymentIntent.client_secret,
   });
