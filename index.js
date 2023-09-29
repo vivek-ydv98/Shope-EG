@@ -24,15 +24,13 @@ const ordersRouter = require("./routes/Order");
 const { User } = require("./model/User");
 const { isAuth, sanitizeUser, cookieExtractor } = require("./services/common");
 const path = require("path");
+const { Order } = require("./model/Order");
 
 // WebHook
 const endpointSecret = process.env.ENDPOINT_SECRET;
-server.post(
-  "/webhook",
-  express.raw({ type: "application/json" }),
-  (request, response) => {
+server.post( "/webhook", express.raw({ type: "application/json" }),
+  async (request, response) => {
     const sig = request.headers["stripe-signature"];
-
     let event;
 
     try {
@@ -41,13 +39,14 @@ server.post(
       response.status(400).send(`Webhook Error: ${err.message}`);
       return;
     }
- 
+
     // Handle the event
     switch (event.type) {
       case "payment_intent.succeeded":
         const paymentIntentSucceeded = event.data.object;
-        console.log(paymentIntentSucceeded);
-        // Then define and call a function to handle the event payment_intent.succeeded
+        const order =await Order.findById(paymentIntentSucceeded.metadata.orderId);
+        order.paymentStatus = "received";
+        order.save();
         break;
       // ... handle other event types
       default:
@@ -89,24 +88,14 @@ server.get("*", (req, res) =>
 //Passport Strategies
 passport.use(
   "local",
-  new LocalStrategy({ usernameField: "email" }, async function (
-    email,
-    password,
-    done
-  ) {
+  new LocalStrategy({ usernameField: "email" }, async function (  email,  password,  done ) {
     // by default passpot uses username
     try {
       const user = await User.findOne({ email: email }).exec();
       if (!user) {
         done(null, false, { message: "Invalid Credentials" });
       }
-      crypto.pbkdf2(
-        password,
-        user.salt,
-        310000,
-        32,
-        "sha256",
-        async function (err, hashedPassword) {
+      crypto.pbkdf2( password, user.salt, 310000, 32, "sha256", async function (err, hashedPassword) {
           if (!crypto.timingSafeEqual(user.password, hashedPassword)) {
             return done(null, false, { message: "Invalid Credentials" });
           }
@@ -128,9 +117,7 @@ const opts = {};
 opts.jwtFromRequest = cookieExtractor;
 opts.secretOrKey = process.env.JWT_SECRET_KEY;
 
-passport.use(
-  "jwt",
-  new JwtStrategy(opts, async function (jwt_payload, done) {
+passport.use( "jwt", new JwtStrategy(opts, async function (jwt_payload, done) {
     try {
       const user = await User.findById(jwt_payload.id);
       if (user) {
@@ -169,16 +156,10 @@ server.post("/create-payment-intent", async (req, res) => {
   const paymentIntent = await stripe.paymentIntents.create({
     amount: totalAmount * 100, //for decimal compensation
     currency: "inr",
-    automatic_payment_methods: {
-      enabled: true,
-    },
-    metadata: {
-       orderId,
-    },
+    automatic_payment_methods: { enabled: true },
+    metadata: { orderId },
   });
-  res.send({
-    clientSecret: paymentIntent.client_secret,
-  });
+  res.send({ clientSecret: paymentIntent.client_secret,});
 });
 
 main().catch((err) => console.log(err));
