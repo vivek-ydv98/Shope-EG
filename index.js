@@ -28,8 +28,7 @@ const { Order } = require("./model/Order");
 
 // WebHook
 const endpointSecret = process.env.ENDPOINT_SECRET;
-server.post( "/webhook", express.raw({ type: "application/json" }),
-  async (request, response) => {
+server.post( "/webhook", express.raw({ type: "application/json" }), async (request, response) => {
     const sig = request.headers["stripe-signature"];
     let event;
 
@@ -44,7 +43,7 @@ server.post( "/webhook", express.raw({ type: "application/json" }),
     switch (event.type) {
       case "payment_intent.succeeded":
         const paymentIntentSucceeded = event.data.object;
-        const order =await Order.findById(paymentIntentSucceeded.metadata.orderId);
+        const order = await Order.findById( paymentIntentSucceeded.metadata.orderId );
         order.paymentStatus = "received";
         order.save();
         break;
@@ -88,14 +87,24 @@ server.get("*", (req, res) =>
 //Passport Strategies
 passport.use(
   "local",
-  new LocalStrategy({ usernameField: "email" }, async function (  email,  password,  done ) {
+  new LocalStrategy({ usernameField: "email" }, async function (
+    email,
+    password,
+    done
+  ) {
     // by default passpot uses username
     try {
       const user = await User.findOne({ email: email }).exec();
       if (!user) {
         done(null, false, { message: "Invalid Credentials" });
       }
-      crypto.pbkdf2( password, user.salt, 310000, 32, "sha256", async function (err, hashedPassword) {
+      crypto.pbkdf2(
+        password,
+        user.salt,
+        310000,
+        32,
+        "sha256",
+        async function (err, hashedPassword) {
           if (!crypto.timingSafeEqual(user.password, hashedPassword)) {
             return done(null, false, { message: "Invalid Credentials" });
           }
@@ -159,7 +168,7 @@ server.post("/create-payment-intent", async (req, res) => {
     automatic_payment_methods: { enabled: true },
     metadata: { orderId },
   });
-  res.send({ clientSecret: paymentIntent.client_secret,});
+  res.send({ clientSecret: paymentIntent.client_secret });
 });
 
 main().catch((err) => console.log(err));

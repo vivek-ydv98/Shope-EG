@@ -8,6 +8,7 @@ const UserSchema = new Schema({
   role: { type: String, default: "user" },
   addresses: { type: [Schema.Types.Mixed] },
   salt: Buffer,
+  resetPasswordToken:{ type: String, default: "" },
 });
 
 const virtual = UserSchema.virtual("id");
