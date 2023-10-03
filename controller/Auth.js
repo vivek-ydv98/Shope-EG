@@ -27,19 +27,21 @@ exports.createUser = async (req, res) => {
 };
 
 exports.loginUser = async (req, res) => {
-  console.log(req.user);
   const user = req.user;
-  const token = jwt.sign(sanitizeUser(req.user), process.env.JWT_SECRET_KEY);
-  // res
-  //   .cookie("jwt", req.user.token, {
-  res
-    .cookie("jwt", token, {
+  res.cookie("jwt", user.token, {
       expires: new Date(Date.now() + 3600000),
       httpOnly: true,
     })
     .status(201)
     .json({ id: user.id, role: user.role });
-  // .json(req.user.token);
+};
+
+exports.logout = async (req, res) => {
+  res.cookie("jwt", null, {
+      expires: new Date(Date.now()),
+      httpOnly: true,
+    })
+    .sendStatus(200);
 };
 
 exports.checkAuth = async (req, res) => {

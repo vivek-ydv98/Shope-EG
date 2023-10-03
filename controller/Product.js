@@ -61,6 +61,7 @@ exports.fetchProductById = async (req, res) => {
 };
 
 exports.updateProduct = async (req, res) => {
+  console.log(req.body)
   const { id } = req.params;
   try {
     let product = await Product.findByIdAndUpdate(id, req.body, { new: true });

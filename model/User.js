@@ -9,7 +9,7 @@ const UserSchema = new Schema({
   addresses: { type: [Schema.Types.Mixed] },
   salt: Buffer,
   resetPasswordToken:{ type: String, default: "" },
-});
+},{timestamps:true});
 
 const virtual = UserSchema.virtual("id");
 virtual.get(function () {

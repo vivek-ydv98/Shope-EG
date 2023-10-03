@@ -112,7 +112,7 @@ passport.use(
             sanitizeUser(user),
             process.env.JWT_SECRET_KEY
           );
-          return done(null, { id: user.id, role: user.role }); //this line send to serialize
+          return done(null, { id: user.id, role: user.role, token:token }); //this line send to serialize
         }
       );
     } catch (error) {
@@ -135,7 +135,7 @@ passport.use( "jwt", new JwtStrategy(opts, async function (jwt_payload, done) {
         return done(null, false);
       }
     } catch (error) {
-      return done(err, false);
+      return done(error, false);
     }
   })
 );
@@ -144,7 +144,7 @@ passport.use( "jwt", new JwtStrategy(opts, async function (jwt_payload, done) {
 passport.serializeUser(function (user, cb) {
   console.log("serialize", user);
   process.nextTick(function () {
-    return cb(null, { id: user.id, role: user.role });
+    return cb(null, { id: user.id, role: user.role,token:user.token });
   });
 });
 
