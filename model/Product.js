@@ -15,13 +15,18 @@ const ProductSchema = new Schema({
   colors: { type: [Schema.Types.Mixed] },
   sizes: { type: [Schema.Types.Mixed] },
   highlights: { type: [String] },
+  discountPrice: { type: Number, required: true },
   deleted: { type: Boolean, default: false },
 });
 
-const virtual = ProductSchema.virtual("id");
-virtual.get(function () {
+const virtualId = ProductSchema.virtual("id");
+virtualId.get(function () {
   return this._id;
 });
+// const virtualDiscountPrice = ProductSchema.virtual("discountPrice");
+// virtualDiscountPrice.get(function () {
+//   return Math.round(this.price*(1-this.discountPercentage/100));
+// });
 ProductSchema.set("toJSON", {
   virtuals: true,
   versionKey: false,

@@ -73,7 +73,7 @@ server.use(passport.authenticate("session"));
 server.use(cors({ exposedHeaders: ["X-Total-Count"] }));
 server.use(express.json()); //to parse req.body
 
-server.use("/products", isAuth(), productRouter.router); //we can also use jwt token for client only auth
+server.use("/products", isAuth(), productRouter.router); 
 server.use("/categories", isAuth(), categoriesRouter.router);
 server.use("/brands", isAuth(), brandRouter.router);
 server.use("/users", isAuth(), usersRouter.router);

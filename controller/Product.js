@@ -3,7 +3,11 @@ const { Product } = require("../model/Product");
 exports.createProduct = async (req, res) => {
   // const productCreated = await Product.insertMany(req.body)
   const product = new Product(req.body);
-  product.save()
+  product.discountPrice = Math.round(
+    product.price * (1 - product.discountPercentage / 100)
+  );
+  product
+    .save()
     .then((data) => {
       res.status(201).json(data);
     })
@@ -21,14 +25,16 @@ exports.fetchProducts = async (req, res) => {
   let query = Product.find(condition);
   let totalProductQuery = Product.find(condition);
   if (req.query.category) {
-    query = query.find({ category: req.query.category });
+    const categories = req.query.category.split(",");
+    query = query.find({ category: { $in: categories } });
     totalProductQuery = totalProductQuery.find({
-      category: req.query.category,
+      category: { $in: categories },
     });
   }
   if (req.query.brand) {
-    query = query.find({ brand: req.query.brand });
-    totalProductQuery = totalProductQuery.find({ brand: req.query.brand });
+    const brands = req.query.brand.split(",");
+    query = query.find({ brand: { $in: brands } });
+    totalProductQuery = totalProductQuery.find({ brand: { $in: brands } });
   }
   if (req.query._sort && req.query._order) {
     query = query.sort({ [req.query._sort]: req.query._order });
@@ -61,10 +67,11 @@ exports.fetchProductById = async (req, res) => {
 };
 
 exports.updateProduct = async (req, res) => {
-  console.log(req.body)
   const { id } = req.params;
   try {
     let product = await Product.findByIdAndUpdate(id, req.body, { new: true });
+    product.discountPrice = Math.round(product.price * (1 - product.discountPercentage / 100));
+    const updateProduct = await product.save();
     res.status(200).json(product);
   } catch (error) {
     res.status(400).json(error);
