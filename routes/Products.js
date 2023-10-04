@@ -7,7 +7,7 @@ router
   .post("/", createProduct)
   .get("/", fetchProducts)
   .get("/:id", fetchProductById)
-  .patch("/:id", updateProduct)
+  .patch("/:id", updateProduct) 
   // .get("/update/testt", async (req, res) => {
   //   console.log("+++++");
   //   console.log("+++++++++++++++++++++++++++++++++++++++++++++++==");
