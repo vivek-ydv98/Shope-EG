@@ -97,7 +97,7 @@ exports.invoiceTemplate = function(order){
       -ms-interpolation-mode: bicubic;
     }
   
-    /**
+    /** 
      * Remove blue links for iOS devices.
      */
     a[x-apple-data-detectors] {
