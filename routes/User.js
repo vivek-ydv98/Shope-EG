@@ -7,4 +7,4 @@ router.get("/own", fetchUserById);
 router.patch("/", updateUser);
 
 exports.router = router;
- 
+  
