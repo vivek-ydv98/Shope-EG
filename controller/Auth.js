@@ -60,7 +60,7 @@ exports.resetPasswordRequest = async (req, res) => {
     user.resetPasswordToken = token;
     await user.save();
 
-    const resetPageLink = "http://localhost:3000/reset-password?token=" + token + "&email=" + email;
+    const resetPageLink = "https://shope-eg.vercel.app/reset-password?token=" + token + "&email=" + email;
     const subject = "Request to reset your password";
     const html = `<p> Click <a href = ${resetPageLink} > here <a/> to Reset Password</p>`;
 
